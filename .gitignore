@@ -1,7 +1,0 @@
-data
-__pycache__/
-.ipynb_checkpoints/
-test.py
-requirements.txt
-.idea/
-.gitignore
