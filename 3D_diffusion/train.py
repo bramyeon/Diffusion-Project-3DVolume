@@ -119,31 +119,22 @@ def main(args):
                 ddpm.train()
 
             ################## Project ##################
-            print(f"{step}: Here?0000")
+
             voxel, label = next(train_it)
-            print(f"{step}: Here?111111")
             voxel = voxel.unsqueeze(1)  # Adding channel
-            print(f"{step}: Here?222222")
             voxel, label = voxel.to(config.device), label.to(config.device)
-            print(f"{step}: Here?333333")
             if args.use_cfg:  # Conditional, CFG training
                 loss = ddpm.get_loss(voxel, class_label=label)
             else:  # Unconditional training
                 loss = ddpm.get_loss(voxel)
-            print(f"{step}: Here?44444")
             pbar.set_description(f"Loss: {loss.item():.4f}")
 
-            print(f"{step}: Here?1")
+
             optimizer.zero_grad()
-            print(f"{step}: Here?2")
             loss.backward()
-            print(f"{step}: Here?3")
             optimizer.step()
-            print(f"{step}: Here?4")
             scheduler.step()
-            print(f"{step}: Here?5")
             losses.append(loss.item())
-            print(f"{step}: Here?6")
 
             step += 1
             pbar.update(1)
@@ -160,7 +151,7 @@ if __name__ == "__main__":
         help="the number of model training steps.",
     )
     parser.add_argument("--warmup_steps", type=int, default=200)
-    parser.add_argument("--log_interval", type=int, default=3)  # 200
+    parser.add_argument("--log_interval", type=int, default=200)  # 200
     parser.add_argument(
         "--max_num_voxels_per_cat",
         type=int,
@@ -170,7 +161,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_diffusion_train_timesteps",
         type=int,
-        default=3,  # 1000
+        default=1000,  # 1000
         help="diffusion Markov chain num steps",
     )
     parser.add_argument("--beta_1", type=float, default=1e-4)

@@ -127,7 +127,7 @@ class ShapeNetVoxelDataModule(object):
 
 if __name__ == "__main__":
     # Below code works well  when loading only one category data
-    # However, this occurs error when loading all categories data...(I'm solving..)
+    # However, this occurs error when loading all categories data...(nothing to do with training, just need to test only this file. I'm solving..)
     voxel_resolution = 128
     ds_module = ShapeNetVoxelDataModule(
         "../data",
