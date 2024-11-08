@@ -6,7 +6,6 @@ from pathlib import Path
 import torch
 import numpy as np ## Project ##
 
-
 def get_data_iterator(iterable):
     """Allows training with DataLoaders in a single infinite loop:
     for i, data in enumerate(inf_generator(train_loader)):
@@ -30,36 +29,29 @@ class ShapeNetVoxelDataset(torch.utils.data.Dataset):
         self.max_num_voxels_per_cat = max_num_voxels_per_cat
         self.label_offset = label_offset
 
-        ############ Project ############
-        # categories = ["airplane", "chair", "table"]
-        categories = ["airplane"] # Memory test
+        categories = os.listdir(os.path.join(root, split))
         self.num_classes = len(categories)
 
-        print(f"Start loading {split} Data....")
-        voxels, labels = [], []
+        file_names, labels = [], []
         for idx, cat in enumerate(sorted(categories)):
-            cat_voxel = np.load(os.path.join(self.root, f"{cat}_voxels_{self.split}.npy"))
-            if self.max_num_voxels_per_cat > 0:
-                # cat_voxel = cat_voxel[: self.max_num_voxels_per_cat]
-                cat_voxel = cat_voxel[: self.max_num_voxels_per_cat, 48:80, 48:80, 48:80] # For mini size test (B, 32, 32, 32)
-            cat_voxel = (cat_voxel - 0.5) / 0.5  # Normalize
-            cat_voxel = torch.Tensor(cat_voxel)
+            category_dir = os.path.join(root, split, cat)
+            cat_file_names = os.listdir(category_dir)  # Project listdir --> os.listdir
+            cat_file_names = sorted(cat_file_names)
+            if self.max_num_images_per_cat > 0:
+                cat_file_names = cat_file_names[: self.max_num_images_per_cat]
+            file_names += cat_file_names
+            labels += [idx + label_offset] * len(cat_file_names)  # label 0 is for null class.
 
-            voxels.append(cat_voxel)
-            labels += [idx + label_offset] * len(cat_voxel) # label 0 is for null class.
-
-        self.voxels = torch.cat(voxels)
-        # self.voxels = np.concatenate(voxels)
+        self.file_names = file_names
         self.labels = labels
-        # print(self.voxels.shape)
-        # print(len(self.labels))
-        print(f"======Complete loading {split} Data======")
-        #################################
+
 
     def __getitem__(self, idx):
         ####### Project #######
-        voxel = self.voxels[idx]
+        voxel = np.load(self.file_names[idx])
+        voxel = (voxel-0.5) / 0.5  # Normalize
         label = self.labels[idx]
+        assert label >= self.label_offset
         #######################
         return voxel, label
 
@@ -80,13 +72,13 @@ class ShapeNetVoxelDataModule(object):
         self.root = root
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.shapenet_root = os.path.join(root, "hdf5_data")  # Project
+        self.shapenet_root = os.path.join(root, "voxel_data")  # Project
         self.max_num_voxels_per_cat = max_num_voxels_per_cat  # Project
         self.voxel_resolution = voxel_resolution  # Project
         self.label_offset = label_offset
 
         if not os.path.exists(self.shapenet_root):
-            print(f"{self.shapenet_root} is empty. Downloading Shapenet dataset...")
+            print(f"{self.shapenet_root} is empty. Make voxel dataset...")
 
         self._set_dataset()
 
@@ -104,7 +96,6 @@ class ShapeNetVoxelDataModule(object):
             label_offset=self.label_offset,
         )
         self.num_classes = self.train_ds.num_classes
-
 
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
@@ -136,7 +127,8 @@ if __name__ == "__main__":
         max_num_voxels_per_cat=2000,
         voxel_resolution=voxel_resolution
     )
-    train_dl = ds_module.train_dataloader()
+    # train_dl = ds_module.train_dataloader()
+    train_dl = ds_module.val_dataloader()
     train_it = get_data_iterator(train_dl)
 
     voxel, label = next(train_it)
