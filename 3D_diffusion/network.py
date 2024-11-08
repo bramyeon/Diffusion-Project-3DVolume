@@ -26,7 +26,7 @@ class UNet3D(nn.Module):
             cdim = tdim
             self.class_embedding = nn.Embedding(num_classes + 1, cdim)
         ## Project ## input channel 3->1, kernel_size 3->21, padding 1->10 (kernel/image ~ kernel/voxel)
-        self.head = nn.Conv3d(1, ch, kernel_size=21, stride=1, padding=10)
+        self.head = nn.Conv3d(1, ch, kernel_size=21, stride=4, padding=10)
         self.downblocks = nn.ModuleList()
         chs = [ch]  # record output channel when dowmsample for upsample
         now_ch = ch
@@ -64,13 +64,16 @@ class UNet3D(nn.Module):
             Swish(),
             nn.Conv3d(now_ch, 1, 21, stride=1, padding=10)  # Project : kernel_size 3->21, padding 1->10
         )
+        self.up1 = UpSample(1)
+        self.up2 = UpSample(1)
+
         self.initialize()
 
     def initialize(self):
         init.xavier_uniform_(self.head.weight)
         init.zeros_(self.head.bias)
-        init.xavier_uniform_(self.tail[-1].weight, gain=1e-5)
-        init.zeros_(self.tail[-1].bias)
+        # init.xavier_uniform_(self.tail[-1].weight, gain=1e-5)
+        # init.zeros_(self.tail[-1].bias)
 
     def forward(self, x, timestep, class_label=None):
         # Timestep embedding
@@ -112,6 +115,8 @@ class UNet3D(nn.Module):
                 h = torch.cat([h, hs.pop()], dim=1)
             h = layer(h, temb)
         h = self.tail(h)
+        h = self.up1(h, temb)
+        h = self.up2(h, temb)
 
         assert len(hs) == 0
         return h

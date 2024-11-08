@@ -45,8 +45,7 @@ def main(args):
     """######"""
 
     ####### Project #######
-    # voxel_resolution = 128
-    voxel_resolution = 32 # For mini size test
+    voxel_resolution = 128
     ds_module = ShapeNetVoxelDataModule(
         "../data",
         batch_size=config.batch_size,
@@ -110,12 +109,13 @@ def main(args):
 
 
                 ### Project ###
-                for i, voxel in enumerate(samples):
-                    voxel = voxel.squeeze(1)  # Remove channel
-                    np.save(save_dir/ f"step={step}-{i}", voxel.cpu().numpy())
+                # for i, voxel in enumerate(samples):
+                #     voxel = voxel.squeeze(1)  # Remove channel
+                #     np.save(save_dir/ f"step={step}-{i}", voxel.cpu().numpy())
                 ###############
 
                 # ddpm.save(f"{save_dir}/last.ckpt")
+                # print("111111")
                 ddpm.train()
 
             ################## Project ##################
@@ -123,18 +123,23 @@ def main(args):
             voxel, label = next(train_it)
             voxel = voxel.unsqueeze(1)  # Adding channel
             voxel, label = voxel.to(config.device), label.to(config.device)
+            # print("222222")
             if args.use_cfg:  # Conditional, CFG training
                 loss = ddpm.get_loss(voxel, class_label=label)
             else:  # Unconditional training
                 loss = ddpm.get_loss(voxel)
             pbar.set_description(f"Loss: {loss.item():.4f}")
-
-
+            # print("3333333")
             optimizer.zero_grad()
+            # print("444444")
             loss.backward()
+            # print("555555")
             optimizer.step()
+            # print("666666")
             scheduler.step()
+            # print("777777")
             losses.append(loss.item())
+            # print("888888")
 
             step += 1
             pbar.update(1)
@@ -151,7 +156,7 @@ if __name__ == "__main__":
         help="the number of model training steps.",
     )
     parser.add_argument("--warmup_steps", type=int, default=200)
-    parser.add_argument("--log_interval", type=int, default=200)  # 200
+    parser.add_argument("--log_interval", type=int, default=2)  # 200
     parser.add_argument(
         "--max_num_voxels_per_cat",
         type=int,
@@ -161,7 +166,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_diffusion_train_timesteps",
         type=int,
-        default=1000,  # 1000
+        default=2,  # 1000
         help="diffusion Markov chain num steps",
     )
     parser.add_argument("--beta_1", type=float, default=1e-4)
