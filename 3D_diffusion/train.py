@@ -115,7 +115,7 @@ def main(args):
                 ###############
 
                 # ddpm.save(f"{save_dir}/last.ckpt")
-                # print("111111")
+
                 ddpm.train()
 
             ################## Project ##################
@@ -123,23 +123,18 @@ def main(args):
             voxel, label = next(train_it)
             voxel = voxel.unsqueeze(1)  # Adding channel
             voxel, label = voxel.to(config.device), label.to(config.device)
-            # print("222222")
+
             if args.use_cfg:  # Conditional, CFG training
                 loss = ddpm.get_loss(voxel, class_label=label)
             else:  # Unconditional training
                 loss = ddpm.get_loss(voxel)
             pbar.set_description(f"Loss: {loss.item():.4f}")
-            # print("3333333")
+
             optimizer.zero_grad()
-            # print("444444")
             loss.backward()
-            # print("555555")
             optimizer.step()
-            # print("666666")
             scheduler.step()
-            # print("777777")
             losses.append(loss.item())
-            # print("888888")
 
             step += 1
             pbar.update(1)

@@ -26,7 +26,7 @@ class UNet3D(nn.Module):
             cdim = tdim
             self.class_embedding = nn.Embedding(num_classes + 1, cdim)
         ## Project ## input channel 3->1, kernel_size 3->21, padding 1->10 (kernel/image ~ kernel/voxel)
-        self.head = nn.Conv3d(1, ch, kernel_size=21, stride=4, padding=10)
+        self.head = nn.Conv3d(1, ch, kernel_size=21, stride=4, padding=10)  # Project : change head to downsampling
         self.downblocks = nn.ModuleList()
         chs = [ch]  # record output channel when dowmsample for upsample
         now_ch = ch
@@ -62,10 +62,10 @@ class UNet3D(nn.Module):
         self.tail = nn.Sequential(
             nn.GroupNorm(16, now_ch),  # Project : 32->16
             Swish(),
-            nn.Conv3d(now_ch, 1, 21, stride=1, padding=10)  # Project : kernel_size 3->21, padding 1->10
+            nn.Conv3d(now_ch, 1, 3, stride=1, padding=1)  # Project : kernel_size 3->21, padding 1->10
         )
-        self.up1 = UpSample(1)
-        self.up2 = UpSample(1)
+        self.up1 = UpSample(1)  # Project : upsampling at the end
+        self.up2 = UpSample(1)  # Project : upsampling at the end
 
         self.initialize()
 

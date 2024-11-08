@@ -52,8 +52,11 @@ def main(args):
 
         for j, voxel in  zip(range(sidx, eidx), samples):
             voxel = voxel.squeeze(1)  # Remove channel
+            ## Project : Need addtion process to make binary result.
+
+            ######################################################
             np.save(save_dir / f"{j}", voxel.cpu().numpy())
-            print(f"Saved the {j}-th image.")
+            print(f"Saved the {j}-th voxels.")
 
 
 if __name__ == "__main__":

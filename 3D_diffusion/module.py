@@ -14,7 +14,7 @@ class Swish(nn.Module):
 class DownSample(nn.Module):
     def __init__(self, in_ch):
         super().__init__()
-        self.main = nn.Conv3d(in_ch, in_ch, 21, stride=2, padding=10) ## Project ## kernel_size 3->21, padding 1->10
+        self.main = nn.Conv3d(in_ch, in_ch, 3, stride=2, padding=1) ## Project ## kernel_size 3->21, padding 1->10
         self.initialize()
 
     def initialize(self):
@@ -29,7 +29,7 @@ class DownSample(nn.Module):
 class UpSample(nn.Module):
     def __init__(self, in_ch):
         super().__init__()
-        self.main = nn.Conv3d(in_ch, in_ch, 21, stride=1, padding=10) ## Project ## kernel_size 3->21, padding 1->10
+        self.main = nn.Conv3d(in_ch, in_ch, 3, stride=1, padding=1) ## Project ## kernel_size 3->21, padding 1->10
         self.initialize()
 
     def initialize(self):
@@ -88,7 +88,7 @@ class ResBlock(nn.Module):
         self.block1 = nn.Sequential(
             nn.GroupNorm(16, in_ch), ## Project ## 32->16
             Swish(),
-            nn.Conv3d(in_ch, out_ch, 21, stride=1, padding=10), ## Project ## kernel_size 3->21, padding 1->10
+            nn.Conv3d(in_ch, out_ch, 3, stride=1, padding=1), ## Project ## kernel_size 3->21, padding 1->10
         )
         self.temb_proj = nn.Sequential(
             Swish(),
@@ -98,7 +98,7 @@ class ResBlock(nn.Module):
             nn.GroupNorm(16, out_ch), ## Project ## 32->16
             Swish(),
             nn.Dropout(dropout),
-            nn.Conv3d(out_ch, out_ch, 21, stride=1, padding=10), ## Project ## kernel_size 3->21, padding 1->10
+            nn.Conv3d(out_ch, out_ch, 3, stride=1, padding=1), ## Project ## kernel_size 3->21, padding 1->10
         )
         if in_ch != out_ch:
             self.shortcut = nn.Conv3d(in_ch, out_ch, 1, stride=1, padding=0) ## Project ##
