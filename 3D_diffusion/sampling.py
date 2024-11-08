@@ -52,9 +52,7 @@ def main(args):
 
         for j, voxel in  zip(range(sidx, eidx), samples):
             voxel = voxel.squeeze(1)  # Remove channel
-            ## Project : Need addtion process to make binary result.
-
-            ######################################################
+            voxel = torch.where(voxel > 0, 1.0, 0.0)
             np.save(save_dir / f"{j}", voxel.cpu().numpy())
             print(f"Saved the {j}-th voxels.")
 

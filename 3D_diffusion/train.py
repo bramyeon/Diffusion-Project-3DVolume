@@ -107,9 +107,10 @@ def main(args):
 
 
                 ### Project ###
-                # for i, voxel in enumerate(samples):
-                #     voxel = voxel.squeeze(1)  # Remove channel
-                #     np.save(save_dir/ f"step={step}-{i}", voxel.cpu().numpy())
+                for i, voxel in enumerate(samples):
+                    voxel = voxel.squeeze(1)  # Remove channel
+                    voxel = torch.where(voxel > 0, 1.0, 0.0)
+                    np.save(save_dir/ f"step={step}-{i}", voxel.cpu().numpy())
                 ###############
 
                 # ddpm.save(f"{save_dir}/last.ckpt")
@@ -145,7 +146,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--train_num_steps",
         type=int,
-        default=100000,
+        default=30000, # 100000
         help="the number of model training steps.",
     )
     parser.add_argument("--warmup_steps", type=int, default=200)
