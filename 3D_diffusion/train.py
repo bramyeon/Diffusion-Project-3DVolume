@@ -68,8 +68,7 @@ def main(args):
     network = UNet3D(
         T=config.num_diffusion_train_timesteps,
         voxel_resolution=voxel_resolution,
-        #ch=64, ## Project ## (128->64)
-        ch=32, # for test
+        ch=32, ## Project ## (128->32)  # 64: make very slow...
         ch_mult=[1, 2, 2, 2],
         attn=[1],
         num_res_blocks=4,
@@ -92,7 +91,6 @@ def main(args):
     with tqdm(initial=step, total=config.train_num_steps) as pbar:
         while step < config.train_num_steps:
             if step % config.log_interval == 0:
-                print("HEllow!!!")
                 ddpm.eval()
                 plt.plot(losses)
                 plt.savefig(f"{save_dir}/loss.png")
