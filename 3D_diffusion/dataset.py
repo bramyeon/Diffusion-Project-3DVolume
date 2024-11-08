@@ -6,6 +6,16 @@ from pathlib import Path
 import torch
 import numpy as np ## Project ##
 
+def listdir(dname):
+    fnames = list(
+        chain(
+            *[
+                list(Path(dname).rglob("*.npy"))  # Project
+            ]
+        )
+    )
+    return fnames
+
 def get_data_iterator(iterable):
     """Allows training with DataLoaders in a single infinite loop:
     for i, data in enumerate(inf_generator(train_loader)):
@@ -35,10 +45,10 @@ class ShapeNetVoxelDataset(torch.utils.data.Dataset):
         file_names, labels = [], []
         for idx, cat in enumerate(sorted(categories)):
             category_dir = os.path.join(root, split, cat)
-            cat_file_names = os.listdir(category_dir)  # Project listdir --> os.listdir
+            cat_file_names = listdir(category_dir)
             cat_file_names = sorted(cat_file_names)
-            if self.max_num_images_per_cat > 0:
-                cat_file_names = cat_file_names[: self.max_num_images_per_cat]
+            if self.max_num_voxels_per_cat > 0:
+                cat_file_names = cat_file_names[: self.max_num_voxels_per_cat]
             file_names += cat_file_names
             labels += [idx + label_offset] * len(cat_file_names)  # label 0 is for null class.
 
