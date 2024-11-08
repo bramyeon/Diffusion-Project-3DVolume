@@ -69,7 +69,7 @@ def main(args):
         T=config.num_diffusion_train_timesteps,
         voxel_resolution=voxel_resolution,
         #ch=64, ## Project ## (128->64)
-        ch=16, # for test
+        ch=32, # for test
         ch_mult=[1, 2, 2, 2],
         attn=[1],
         num_res_blocks=4,
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         help="the number of model training steps.",
     )
     parser.add_argument("--warmup_steps", type=int, default=200)
-    parser.add_argument("--log_interval", type=int, default=2)  # 200
+    parser.add_argument("--log_interval", type=int, default=200)  # 200
     parser.add_argument(
         "--max_num_voxels_per_cat",
         type=int,
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_diffusion_train_timesteps",
         type=int,
-        default=2,  # 1000
+        default=1000,  # 1000
         help="diffusion Markov chain num steps",
     )
     parser.add_argument("--beta_1", type=float, default=1e-4)
