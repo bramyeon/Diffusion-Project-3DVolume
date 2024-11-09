@@ -107,9 +107,11 @@ def main(args):
 
 
                 ### Project ###
+                threshold = 0.7
                 for i, voxel in enumerate(samples):
                     voxel = voxel.squeeze(1)  # Remove channel
-                    voxel = torch.where(voxel > 0, 1.0, 0.0)
+                    voxel = 0.5*voxel + 0.5
+                    voxel = torch.where(voxel > threshold, 1.0, 0.0)
                     np.save(save_dir/ f"step={step}-{i}", voxel.cpu().numpy())
                 ###############
 
@@ -146,11 +148,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--train_num_steps",
         type=int,
-        default=30000, # 100000
+        default=50000,  # 100000
         help="the number of model training steps.",
     )
     parser.add_argument("--warmup_steps", type=int, default=200)
-    parser.add_argument("--log_interval", type=int, default=200)  # 200
+    parser.add_argument("--log_interval", type=int, default=5000)  # 200
     parser.add_argument(
         "--max_num_voxels_per_cat",
         type=int,
