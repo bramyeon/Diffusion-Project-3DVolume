@@ -106,24 +106,24 @@ def main(args):
                     samples = ddpm.sample(4, return_traj=False)
 
 
-                ### Project ###
+                ############# Project #############
                 threshold = 0.7
                 for i, voxel in enumerate(samples):
                     voxel = voxel.squeeze(1)  # Remove channel
                     voxel = 0.5*voxel + 0.5
                     voxel = torch.where(voxel > threshold, 1.0, 0.0)
                     np.save(save_dir/ f"step={step}-{i}", voxel.cpu().numpy())
-                ###############
+                ###################################
 
                 # ddpm.save(f"{save_dir}/last.ckpt")
 
                 ddpm.train()
 
             ################## Project ##################
-
             voxel, label = next(train_it)
             voxel = voxel.unsqueeze(1)  # Adding channel
             voxel, label = voxel.to(config.device), label.to(config.device)
+            #############################################
 
             if args.use_cfg:  # Conditional, CFG training
                 loss = ddpm.get_loss(voxel, class_label=label)
