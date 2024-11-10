@@ -25,7 +25,7 @@ class UNet3D(nn.Module):
             assert num_classes is not None
             cdim = tdim
             self.class_embedding = nn.Embedding(num_classes + 1, cdim)
-        ## Project ## input channel 3->1, kernel_size 3->21, padding 1->10 (kernel/image ~ kernel/voxel)
+        ## Project ## input channel 3->1, kernel_size 3->21, padding 1->10 (Try to keep kernel/image rate)
         self.head = nn.Conv3d(1, ch, kernel_size=21, stride=4, padding=10)  # Project : change head to downsampling
         self.downblocks = nn.ModuleList()
         chs = [ch]  # record output channel when dowmsample for upsample
@@ -62,7 +62,7 @@ class UNet3D(nn.Module):
         self.tail = nn.Sequential(
             nn.GroupNorm(16, now_ch),  # Project : 32->16
             Swish(),
-            nn.Conv3d(now_ch, 1, 3, stride=1, padding=1)  # Project : kernel_size 3->21, padding 1->10
+            nn.Conv3d(now_ch, 1, 3, stride=1, padding=1)
         )
         self.up1 = UpSample(1)  # Project : upsampling at the end
         self.up2 = UpSample(1)  # Project : upsampling at the end
@@ -72,8 +72,8 @@ class UNet3D(nn.Module):
     def initialize(self):
         init.xavier_uniform_(self.head.weight)
         init.zeros_(self.head.bias)
-        # init.xavier_uniform_(self.tail[-1].weight, gain=1e-5)
-        # init.zeros_(self.tail[-1].bias)
+        init.xavier_uniform_(self.tail[-1].weight, gain=1e-5)
+        init.zeros_(self.tail[-1].bias)
 
     def forward(self, x, timestep, class_label=None):
         # Timestep embedding
@@ -115,8 +115,8 @@ class UNet3D(nn.Module):
                 h = torch.cat([h, hs.pop()], dim=1)
             h = layer(h, temb)
         h = self.tail(h)
-        h = self.up1(h, temb)
-        h = self.up2(h, temb)
+        h = self.up1(h, temb)  # Project upsampling 32-> 64
+        h = self.up2(h, temb)  # Project upsampling 64-> 128
 
         assert len(hs) == 0
         return h
