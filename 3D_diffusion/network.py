@@ -102,6 +102,8 @@ class UNet3D(nn.Module):
             temb = temb + class_emb
             #######################
 
+        x = self.down1(x, temb)  # Project downsampling 128->64
+        x = self.down2(x, temb)  # Project downsampling 64->32
         # Downsampling
         h = self.head(x)
         hs = [h]
