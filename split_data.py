@@ -14,7 +14,7 @@ def split(root: str, dataset: str, category: list):
 
     dataset_root = os.path.join(root, dataset)
 
-    for split in ["train", "val", "test"]:
+    for split in ["train", "val"]:  # Remove test - No need test dataset for training
         save_split_dir = Path(os.path.join(save_dir, split))
         save_split_dir.mkdir(exist_ok=True, parents=True)
         for cat in tqdm(category):
@@ -22,7 +22,7 @@ def split(root: str, dataset: str, category: list):
             save_cat_dir.mkdir(exist_ok=True, parents=True)
 
             data = np.load(os.path.join(dataset_root, f"{cat}_voxels_{split}.npy"))
-            os.remove(os.path.join(dataset_root, f"{cat}_voxels_{split}.npy"))  # For memory
+            # os.remove(os.path.join(dataset_root, f"{cat}_voxels_{split}.npy"))  # For memory
             for i in range(data.shape[0]):
                 np.save(os.path.join(save_cat_dir, f"{cat}_{i}.npy"), data[i])
 
