@@ -25,8 +25,10 @@ class UNet3D(nn.Module):
             assert num_classes is not None
             cdim = tdim
             self.class_embedding = nn.Embedding(num_classes + 1, cdim)
-        ## Project ## input channel 3->1, kernel_size 3->21, padding 1->10 (Try to keep kernel/image rate)
-        self.head = nn.Conv3d(1, ch, kernel_size=21, stride=4, padding=10)  # Project : change head to downsampling
+
+        self.down1 = DownSample(1)  # Project : upsampling at start (128->64)
+        self.down2 = DownSample(1)  # Project : upsampling at start (64->32)
+        self.head = nn.Conv3d(1, ch, kernel_size=3, stride=1, padding=1)  # Project : conv2d -> conv3d, input_channel 3->1
         self.downblocks = nn.ModuleList()
         chs = [ch]  # record output channel when dowmsample for upsample
         now_ch = ch
@@ -62,10 +64,10 @@ class UNet3D(nn.Module):
         self.tail = nn.Sequential(
             nn.GroupNorm(16, now_ch),  # Project : 32->16
             Swish(),
-            nn.Conv3d(now_ch, 1, 3, stride=1, padding=1)
+            nn.Conv3d(now_ch, 1, 3, stride=1, padding=1)  # Project : conv2d -> conv3d, output_channel 3->1
         )
-        self.up1 = UpSample(1)  # Project : upsampling at the end
-        self.up2 = UpSample(1)  # Project : upsampling at the end
+        self.up1 = UpSample(1)  # Project : upsampling at the end (32->64)
+        self.up2 = UpSample(1)  # Project : upsampling at the end (64->128)
 
         self.initialize()
 
