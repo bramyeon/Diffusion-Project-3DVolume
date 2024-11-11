@@ -107,11 +107,11 @@ def main(args):
 
 
                 ############# Project #############
-                threshold = 0.7
+                # threshold = 0.7  # In training, don't apply threshold, save origin value
                 for i, voxel in enumerate(samples):
                     voxel = voxel.squeeze(1)  # Remove channel
                     voxel = 0.5*voxel + 0.5
-                    voxel = torch.where(voxel > threshold, 1.0, 0.0)
+                    # voxel = torch.where(voxel > threshold, 1.0, 0.0)
                     np.save(save_dir/ f"step={step}-{i}", voxel.cpu().numpy())
                 ###################################
 
