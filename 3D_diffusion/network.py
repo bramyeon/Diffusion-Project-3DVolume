@@ -26,8 +26,8 @@ class UNet3D(nn.Module):
             cdim = tdim
             self.class_embedding = nn.Embedding(num_classes + 1, cdim)
 
-        self.down1 = DownSample(1)  # Project : upsampling at start (128->64)
-        self.down2 = DownSample(1)  # Project : upsampling at start (64->32)
+        self.down1 = DownSample(1)  # Project : downsampling at start (128->64)
+        self.down2 = DownSample(1)  # Project : downsampling at start (64->32)
         self.head = nn.Conv3d(1, ch, kernel_size=3, stride=1, padding=1)  # Project : conv2d -> conv3d, input_channel 3->1
         self.downblocks = nn.ModuleList()
         chs = [ch]  # record output channel when dowmsample for upsample
