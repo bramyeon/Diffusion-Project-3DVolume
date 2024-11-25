@@ -72,7 +72,37 @@ class DDPMScheduler(BaseScheduler):
 
         self.register_buffer("sigmas", sigmas)
 
-    def step(self, x_t: torch.Tensor, t: int, eps_theta: torch.Tensor):
+    # def step(self, x_t: torch.Tensor, t: int, eps_theta: torch.Tensor):
+    #
+    #     """
+    #     One step denoising function of DDPM: x_t -> x_{t-1}.
+    #
+    #     Input:
+    #         x_t (`torch.Tensor [B,C,H,W]`): samples at arbitrary timestep t.
+    #         t (`int`): current timestep in a reverse process.
+    #         eps_theta (`torch.Tensor [B,C,H,W]`): predicted noise from a learned model.
+    #     Ouptut:
+    #         sample_prev (`torch.Tensor [B,C,H,W]`): one step denoised sample. (= x_{t-1})
+    #     """
+    #
+    #     ######## TODO ########
+    #     # DO NOT change the code outside this part.
+    #     # Assignment 1. Implement the DDPM reverse step.
+    #     if isinstance(t, int):
+    #         t = torch.tensor([t]).to(self.device)
+    #
+    #     eps_factor = (1 - self.alphas[t]) / (1 - self.alphas_cumprod[t]).sqrt()
+    #
+    #     mu = (1 / self.alphas[t]).sqrt() * (x_t - eps_theta * eps_factor)
+    #     noise = torch.randn_like(x_t)
+    #
+    #     sample_prev = mu + self.sigmas[t] * noise
+    #     #######################
+    #
+    #     return sample_prev
+
+    def step(self, x_t: torch.Tensor, t: int, x0_theta: torch.Tensor):
+
         """
         One step denoising function of DDPM: x_t -> x_{t-1}.
 
@@ -88,14 +118,28 @@ class DDPMScheduler(BaseScheduler):
         # DO NOT change the code outside this part.
         # Assignment 1. Implement the DDPM reverse step.
         if isinstance(t, int):
-            t = torch.tensor([t]).to(self.device)
+            t = torch.tensor([t])
 
-        eps_factor = (1 - self.alphas[t]) / (1 - self.alphas_cumprod[t]).sqrt()
+        # eps_factor = (1 - self.alphas[t]) / (1 - self.alphas_cumprod[t]).sqrt()
+        #
+        # mu = (1 / self.alphas[t]).sqrt() * (x_t - eps_theta * eps_factor)
+        # noise = torch.randn_like(x_t)
+        #
+        # sample_prev = mu + self.sigmas[t] * noise
 
-        mu = (1 / self.alphas[t]).sqrt() * (x_t - eps_theta * eps_factor)
-        noise = torch.randn_like(x_t)
+        prev_t = t - self.num_train_timesteps // self.num_inference_timesteps  # Time interval for inference
+        alphas = self.alphas_cumprod[t]
 
-        sample_prev = mu + self.sigmas[t] * noise
+        if prev_t >= 0:
+            alphas_prev = self.alphas_cumprod[prev_t]
+
+        else:
+            # If no this, prev_t will be negative so step go back N, which makes result noisy
+            # scheduler.final_alpha_cumprod  = 0.9999
+            alphas_prev = torch.tensor([0.9999], device=alphas.device)
+
+        sample_prev = torch.sqrt(alphas_prev) * x0_theta + torch.sqrt(1 - alphas_prev) * (
+                    x_t - torch.sqrt(alphas) * x0_theta) / torch.sqrt(1 - alphas)
         #######################
 
         return sample_prev

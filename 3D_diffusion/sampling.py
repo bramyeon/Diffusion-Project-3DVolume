@@ -27,7 +27,8 @@ def main(args):
         mode="linear",
     ).to(device)
 
-    total_num_samples = 500
+    total_num_samples = 1000
+    num_categories = 3
     num_batches = int(np.ceil(total_num_samples / args.batch_size))
 
     for i in range(num_batches):
@@ -37,11 +38,17 @@ def main(args):
 
         if args.use_cfg:  # Enable CFG sampling
             assert ddpm.network.use_cfg, f"The model was not trained to support CFG."
-            samples = ddpm.sample(
-                B,
-                class_label=torch.randint(1, 4, (B,)),
-                guidance_scale=args.cfg_scale,
-            )
+            for i in range(num_categories):
+                samples = ddpm.sample(
+                    B,
+                    class_label=torch.full((B,), i+1),
+                    guidance_scale=args.cfg_scale,
+                )
+                threshold = 0.5
+                voxel = samples.squeeze(1).clamp(0, 1).detach()  # Remove channel
+                voxel = torch.where(voxel > threshold, 1.0, 0.0)
+                np.save(save_dir / f"{i}", voxel.cpu().numpy())
+                print(f"Saved the {i}-th category's voxels.")
         else:
             samples = ddpm.sample(
                 B,
@@ -49,13 +56,12 @@ def main(args):
                 guidance_scale=0.0,
             )
 
-        threshold = 0.7
-        for j, voxel in  zip(range(sidx, eidx), samples):
-            voxel = voxel.squeeze(1)  # Remove channel
-            voxel = 0.5 * voxel + 0.5
-            voxel = torch.where(voxel > threshold, 1.0, 0.0)
-            np.save(save_dir / f"{j}", voxel.cpu().numpy())
-            print(f"Saved the {j}-th voxels.")
+            threshold = 0.5
+            for j, voxel in  zip(range(sidx, eidx), samples):
+                voxel = voxel.squeeze(1).clamp(0, 1).detach()  # Remove channel
+                voxel = torch.where(voxel > threshold, 1.0, 0.0)
+                np.save(save_dir / f"{j}", voxel.cpu().numpy())
+                print(f"Saved the {j}-th voxels.")
 
 
 if __name__ == "__main__":

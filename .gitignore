@@ -6,3 +6,5 @@ requirements.txt
 .idea/
 .gitignore
 README.md
+./3D_diffusion/results
+./Point2Voxel

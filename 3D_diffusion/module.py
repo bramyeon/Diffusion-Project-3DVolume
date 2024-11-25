@@ -86,7 +86,7 @@ class ResBlock(nn.Module):
     def __init__(self, in_ch, out_ch, tdim, dropout, attn=False):
         super().__init__()
         self.block1 = nn.Sequential(
-            nn.GroupNorm(16, in_ch), ## Project ## 32->16
+            nn.GroupNorm(8, in_ch), ## Project ## 32->16
             Swish(),
             nn.Conv3d(in_ch, out_ch, 3, stride=1, padding=1),  # Project : conv2d -> conv3d
         )
@@ -95,7 +95,7 @@ class ResBlock(nn.Module):
             nn.Linear(tdim, out_ch),
         )
         self.block2 = nn.Sequential(
-            nn.GroupNorm(16, out_ch), ## Project ## 32->16
+            nn.GroupNorm(8, out_ch), ## Project ## 32->16
             Swish(),
             nn.Dropout(dropout),
             nn.Conv3d(out_ch, out_ch, 3, stride=1, padding=1),  # Project : conv2d -> conv3d

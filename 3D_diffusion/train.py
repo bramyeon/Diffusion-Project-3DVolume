@@ -45,7 +45,7 @@ def main(args):
     """######"""
 
     ####### Project #######
-    voxel_resolution = 128
+    voxel_resolution = 64
     ds_module = ShapeNetVoxelDataModule(
         "../data",
         batch_size=config.batch_size,
@@ -109,13 +109,11 @@ def main(args):
                 ############# Project #############
                 # threshold = 0.7  # In training, don't apply threshold, save origin value
                 for i, voxel in enumerate(samples):
-                    voxel = voxel.squeeze(1)  # Remove channel
-                    voxel = 0.5*voxel + 0.5
-                    # voxel = torch.where(voxel > threshold, 1.0, 0.0)
+                    voxel = voxel.squeeze(1).clamp(0, 1).detach()
                     np.save(save_dir/ f"step={step}-{i}", voxel.cpu().numpy())
                 ###################################
 
-                # ddpm.save(f"{save_dir}/last.ckpt")
+                ddpm.save(f"{save_dir}/last.ckpt")
 
                 ddpm.train()
 
@@ -144,11 +142,11 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpu", type=int, default=0)
-    parser.add_argument("--batch_size", type=int, default=16)
+    parser.add_argument("--batch_size", type=int, default=16) # 16
     parser.add_argument(
         "--train_num_steps",
         type=int,
-        default=50000,  # 100000
+        default=100000,  # 100000
         help="the number of model training steps.",
     )
     parser.add_argument("--warmup_steps", type=int, default=200)
@@ -168,7 +166,7 @@ if __name__ == "__main__":
     parser.add_argument("--beta_1", type=float, default=1e-4)
     parser.add_argument("--beta_T", type=float, default=0.02)
     parser.add_argument("--seed", type=int, default=63)
-    parser.add_argument("--voxel_resolution", type=int, default=128)
+    parser.add_argument("--voxel_resolution", type=int, default=64)
     parser.add_argument("--sample_method", type=str, default="ddpm")
     parser.add_argument("--use_cfg", action="store_true")
     parser.add_argument("--cfg_dropout", type=float, default=0.1)

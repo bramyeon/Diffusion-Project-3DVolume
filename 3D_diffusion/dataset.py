@@ -59,7 +59,7 @@ class ShapeNetVoxelDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         ####### Project #######
         voxel = np.load(self.file_names[idx])
-        voxel = (voxel-0.5) / 0.5  # Normalize
+        # voxel = (voxel-0.5) / 0.5  # Normalize
         label = self.labels[idx]
         assert label >= self.label_offset
         #######################

@@ -9,7 +9,7 @@ from torch.nn import init
 import time
 # from torchsummary import summary
 class UNet3D(nn.Module):
-    def __init__(self, T=1000, voxel_resolution=128, ch=64, ch_mult=[1, 2, 2, 2], attn=[1], num_res_blocks=4,
+    def __init__(self, T=1000, voxel_resolution=64, ch=64, ch_mult=[1, 2, 2, 2], attn=[1], num_res_blocks=4,
                  dropout=0.1, use_cfg=False, cfg_dropout=0.1, num_classes=None):
         super().__init__()
         self.voxel_resolution = voxel_resolution  # Project
@@ -27,7 +27,7 @@ class UNet3D(nn.Module):
             self.class_embedding = nn.Embedding(num_classes + 1, cdim)
 
         self.down1 = DownSample(1)  # Project : downsampling at start (128->64)
-        self.down2 = DownSample(1)  # Project : downsampling at start (64->32)
+        # self.down2 = DownSample(1)  # Project : downsampling at start (64->32)
         self.head = nn.Conv3d(1, ch, kernel_size=3, stride=1, padding=1)  # Project : conv2d -> conv3d, input_channel 3->1
         self.downblocks = nn.ModuleList()
         chs = [ch]  # record output channel when dowmsample for upsample
@@ -62,12 +62,13 @@ class UNet3D(nn.Module):
         assert len(chs) == 0
 
         self.tail = nn.Sequential(
-            nn.GroupNorm(16, now_ch),  # Project : 32->16
+            nn.GroupNorm(8, now_ch),  # Project : 32->16
             Swish(),
             nn.Conv3d(now_ch, 1, 3, stride=1, padding=1)  # Project : conv2d -> conv3d, output_channel 3->1
         )
         self.up1 = UpSample(1)  # Project : upsampling at the end (32->64)
-        self.up2 = UpSample(1)  # Project : upsampling at the end (64->128)
+        # self.up2 = UpSample(1)  # Project : upsampling at the end (64->128)
+        self.final_activation = nn.Sigmoid()
 
         self.initialize()
 
@@ -103,7 +104,7 @@ class UNet3D(nn.Module):
             #######################
 
         x = self.down1(x, temb)  # Project downsampling 128->64
-        x = self.down2(x, temb)  # Project downsampling 64->32
+        # x = self.down2(x, temb)  # Project downsampling 64->32
         # Downsampling
         h = self.head(x)
         hs = [h]
@@ -120,7 +121,8 @@ class UNet3D(nn.Module):
             h = layer(h, temb)
         h = self.tail(h)
         h = self.up1(h, temb)  # Project upsampling 32-> 64
-        h = self.up2(h, temb)  # Project upsampling 64-> 128
+        # h = self.up2(h, temb)  # Project upsampling 64-> 128
+        h = self.final_activation(h)
 
         assert len(hs) == 0
         return h

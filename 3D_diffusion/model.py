@@ -22,9 +22,15 @@ class DiffusionModule(nn.Module):
 
         xt, eps = self.var_scheduler.add_noise(x0, timestep)
 
-        eps_pred = self.network(xt, timestep)
+        # eps_pred = self.network(xt, timestep)
+        x0_pred = self.network(xt, timestep)
 
-        loss = F.mse_loss(eps_pred, eps, reduction='none')
+        # eps = torch.sigmoid(eps)
+        # eps_pred = torch.sigmoid(eps_pred)
+
+        # loss = F.mse_loss(eps_pred, eps, reduction='mean')
+
+        loss = F.binary_cross_entropy(x0_pred, x0)
         loss = loss.mean()
         ######################
         return loss
@@ -68,23 +74,37 @@ class DiffusionModule(nn.Module):
                 ######## TODO ########
                 # Assignment 2. Implement the classifier-free guidance.
 
+                # x_t_cat = torch.cat([x_t, x_t]).to(self.device)
+                # noise_pred = self.network(x_t_cat, t.to(self.device), total_class_labels)  # training
+                #
+                # noise_null = noise_pred[:batch_size]
+                # noise_condition = noise_pred[batch_size:]
+                #
+                # noise_pred = (1 + guidance_scale) * noise_condition - guidance_scale * noise_null
+
                 x_t_cat = torch.cat([x_t, x_t]).to(self.device)
-                noise_pred = self.network(x_t_cat, t.to(self.device), total_class_labels)  # training
+                x0_pred = self.network(x_t_cat, t.to(self.device), total_class_labels)  # training
 
-                noise_null = noise_pred[:batch_size]
-                noise_condition = noise_pred[batch_size:]
+                noise_null = x0_pred[:batch_size]
+                noise_condition = x0_pred[batch_size:]
 
-                noise_pred = (1 + guidance_scale) * noise_condition - guidance_scale * noise_null
+                x0_pred = (1 + guidance_scale) * noise_condition - guidance_scale * noise_null
 
                 #######################
             else:
-                noise_pred = self.network(
+                # noise_pred = self.network(
+                #     x_t,
+                #     timestep=t.to(self.device),
+                #     class_label=class_label,
+                # )
+                x0_pred = self.network(
                     x_t,
                     timestep=t.to(self.device),
                     class_label=class_label,
                 )
 
-            x_t_prev = self.var_scheduler.step(x_t, t, noise_pred)
+            # x_t_prev = self.var_scheduler.step(x_t, t, noise_pred)
+            x_t_prev = self.var_scheduler.step(x_t, t, x0_pred)
 
             traj[-1] = traj[-1].cpu()
             traj.append(x_t_prev.detach())
