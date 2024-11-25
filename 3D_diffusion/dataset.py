@@ -46,7 +46,7 @@ class ShapeNetVoxelDataset(torch.utils.data.Dataset):
 
         # if only train one category  airplane = 0, chair = 1, table = 2
         category_idx = 2
-        cat = categories[category_idx]
+        cat = sorted(categories)[category_idx]
         category_dir = os.path.join(root, split, cat)
         cat_file_names = listdir(category_dir)
         cat_file_names = sorted(cat_file_names)
