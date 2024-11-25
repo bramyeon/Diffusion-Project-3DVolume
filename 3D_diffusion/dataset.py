@@ -55,7 +55,7 @@ class ShapeNetVoxelDataset(torch.utils.data.Dataset):
         file_names += cat_file_names
         labels += [category_idx + label_offset] * len(cat_file_names)  # label 0 is for null class.
 
-        # if only train all categories
+        # if train all categories
         # for idx, cat in enumerate(sorted(categories)):
         #     category_dir = os.path.join(root, split, cat)
         #     cat_file_names = listdir(category_dir)
