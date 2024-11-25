@@ -43,14 +43,27 @@ class ShapeNetVoxelDataset(torch.utils.data.Dataset):
         self.num_classes = len(categories)
 
         file_names, labels = [], []
-        for idx, cat in enumerate(sorted(categories)):
-            category_dir = os.path.join(root, split, cat)
-            cat_file_names = listdir(category_dir)
-            cat_file_names = sorted(cat_file_names)
-            if self.max_num_voxels_per_cat > 0:
-                cat_file_names = cat_file_names[: self.max_num_voxels_per_cat]
-            file_names += cat_file_names
-            labels += [idx + label_offset] * len(cat_file_names)  # label 0 is for null class.
+
+        # if only train one category  airplane = 0, chair = 1, table = 2
+        category_idx = 2
+        cat = categories[category_idx]
+        category_dir = os.path.join(root, split, cat)
+        cat_file_names = listdir(category_dir)
+        cat_file_names = sorted(cat_file_names)
+        if self.max_num_voxels_per_cat > 0:
+            cat_file_names = cat_file_names[: self.max_num_voxels_per_cat]
+        file_names += cat_file_names
+        labels += [category_idx + label_offset] * len(cat_file_names)  # label 0 is for null class.
+
+        # if only train all categories
+        # for idx, cat in enumerate(sorted(categories)):
+        #     category_dir = os.path.join(root, split, cat)
+        #     cat_file_names = listdir(category_dir)
+        #     cat_file_names = sorted(cat_file_names)
+        #     if self.max_num_voxels_per_cat > 0:
+        #         cat_file_names = cat_file_names[: self.max_num_voxels_per_cat]
+        #     file_names += cat_file_names
+        #     labels += [idx + label_offset] * len(cat_file_names)  # label 0 is for null class.
 
         self.file_names = file_names
         self.labels = labels
