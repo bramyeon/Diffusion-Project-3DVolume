@@ -63,7 +63,7 @@ def main(args):
                 voxel = torch.where(voxel > threshold, 1.0, 0.0)
                 samples.append(voxel)
 
-            samples = torch.stack(voxel)
+            samples = torch.stack(samples)
             np.save(save_dir / f"{j}", samples.cpu().numpy())
             print(f"Saved the {j}-th voxels.")
 
