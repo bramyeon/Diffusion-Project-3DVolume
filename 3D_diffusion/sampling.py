@@ -30,6 +30,7 @@ def main(args):
     total_num_samples = 1000
     num_categories = 3
     num_batches = int(np.ceil(total_num_samples / args.batch_size))
+    samples = []
 
     for i in range(num_batches):
         sidx = i * args.batch_size
@@ -60,8 +61,11 @@ def main(args):
             for j, voxel in  zip(range(sidx, eidx), samples):
                 voxel = voxel.squeeze(1).clamp(0, 1).detach()  # Remove channel
                 voxel = torch.where(voxel > threshold, 1.0, 0.0)
-                np.save(save_dir / f"{j}", voxel.cpu().numpy())
-                print(f"Saved the {j}-th voxels.")
+                samples.append(voxel)
+
+            samples = torch.stack(voxel)
+            np.save(save_dir / f"{j}", samples.cpu().numpy())
+            print(f"Saved the {j}-th voxels.")
 
 
 if __name__ == "__main__":
