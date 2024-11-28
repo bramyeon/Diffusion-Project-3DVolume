@@ -30,9 +30,9 @@ def main(args):
     total_num_samples = 1000
     num_categories = 3
     num_batches = int(np.ceil(total_num_samples / args.batch_size))
+    samples_list_all = [[],[],[]]
     samples_list = []
     category_idx = 2  # For one category sampling, airplane = 0, chair = 1, table = 2
-    threshold = 0.5
 
     for i in range(num_batches):
         sidx = i * args.batch_size
@@ -41,16 +41,15 @@ def main(args):
 
         if args.use_cfg:  # Enable CFG sampling
             assert ddpm.network.use_cfg, f"The model was not trained to support CFG."
-            # for i in range(num_categories):
-            #     samples = ddpm.sample(
-            #         B,
-            #         class_label=torch.full((B,), i+1),
-            #         guidance_scale=args.cfg_scale,
-            #     )
-            #     voxel = samples.squeeze(1).clamp(0, 1).detach()  # Remove channel
-            #     voxel = torch.where(voxel > threshold, 1.0, 0.0)
-            #     np.save(save_dir / f"{i}", voxel.cpu().numpy())
-            #     print(f"Saved the {i}-th category's voxels.")
+            for i in range(num_categories):
+                samples = ddpm.sample(
+                    B,
+                    class_label=torch.full((B,), i+1),
+                    guidance_scale=args.cfg_scale,
+                )
+                voxel = samples.squeeze(1).clamp(0, 1).detach()  # Remove channel
+                samples_list_all[i].append(voxel)
+
         else:
             samples = ddpm.sample(
                 B,
@@ -59,17 +58,22 @@ def main(args):
             )
 
             voxel = samples.squeeze(1).clamp(0, 1).detach()  # Remove channel
-            voxel = torch.where(voxel > threshold, 1.0, 0.0)
             samples_list.append(voxel)
 
-        samples_list = torch.stack(samples_list)
+    if args.use_cfg:
+        for i in range(num_categories):
+            category_samples = torch.cat(samples_list[i])
+            np.save(save_dir / f"{category_idx}", category_samples.cpu().numpy())
+            print(f"Saved the {category_idx}-th category's voxels.")
+    else:
+        samples_list = torch.cat(samples_list)
         np.save(save_dir / f"{category_idx}", samples_list.cpu().numpy())
         print(f"Saved the {category_idx}-th category's voxels.")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--ckpt_path", type=str)
     parser.add_argument("--save_dir", type=str)

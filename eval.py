@@ -8,8 +8,8 @@ import torch
 from scipy.spatial import cKDTree
 from tqdm import tqdm
 
-
-def voxel_to_pointcloud(voxel_grid: torch.Tensor, vox_res=(128, 128, 128)):
+VOX_RES = (64, 64, 64)
+def voxel_to_pointcloud(voxel_grid: torch.Tensor, vox_res=VOX_RES):
     vox_res = np.array(vox_res)
     voxel_indices = torch.argwhere(voxel_grid > 0)
     normalized_pts = voxel_indices / (vox_res - 1)
@@ -99,6 +99,7 @@ def jensen_shannon_divergence(voxel_set1, voxel_set2):
         float: Jensen-Shannon Divergence value.
     """
     # Count the number of points lying within each voxel grid across all voxel samples.
+
     voxel_set1 = voxel_set1.sum(0)
     voxel_set2 = voxel_set2.sum(0)
 
@@ -188,7 +189,11 @@ if __name__ == "__main__":
     
     assert category in ["chair", "airplane", "table"], f"{category} should be one of `chair`, `airplane`, or `table`."
 
-    X_gen = torch.load(sample_path).float()
+
+    # X_gen = torch.load(sample_path).float()
+    X_gen = torch.from_numpy(np.load(sample_path)).float()
+    threshold = 0.2
+    X_gen = torch.where(X_gen > threshold, 1.0, 0.0)
     # X_gen = torch.rand(1000, 128, 128, 128)  # For testing.
     # X_gen = (X_gen > 0.98).float()
 
