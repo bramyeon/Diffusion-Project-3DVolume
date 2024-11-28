@@ -26,8 +26,9 @@ class UNet3D(nn.Module):
             cdim = tdim
             self.class_embedding = nn.Embedding(num_classes + 1, cdim)
 
-        self.down1 = DownSample(1)  # Project : downsampling at start (128->64)
-        # self.down2 = DownSample(1)  # Project : downsampling at start (64->32)
+        self.down = DownSample(1)  # Project : downsampling at start (64->32)
+        self.head_activation = Swish()  # Project : activation of down1
+
         self.head = nn.Conv3d(1, ch, kernel_size=3, stride=1, padding=1)  # Project : conv2d -> conv3d, input_channel 3->1
         self.downblocks = nn.ModuleList()
         chs = [ch]  # record output channel when dowmsample for upsample
@@ -66,9 +67,9 @@ class UNet3D(nn.Module):
             Swish(),
             nn.Conv3d(now_ch, 1, 3, stride=1, padding=1)  # Project : conv2d -> conv3d, output_channel 3->1
         )
-        self.up1 = UpSample(1)  # Project : upsampling at the end (32->64)
-        # self.up2 = UpSample(1)  # Project : upsampling at the end (64->128)
-        self.final_activation = nn.Sigmoid()
+        self.tail_activation = Swish()  # Project : activation of tail
+        self.up = UpSample(1)  # Project : upsampling at the end (32->64)
+        # self.final_activation = nn.Sigmoid()  # If use BCE loss
 
         self.initialize()
 
@@ -103,8 +104,8 @@ class UNet3D(nn.Module):
             temb = temb + class_emb
             #######################
 
-        x = self.down1(x, temb)  # Project downsampling 128->64
-        # x = self.down2(x, temb)  # Project downsampling 64->32
+        x = self.down(x, temb)  # Project downsampling 64->32
+        x = self.head_activation(x)
         # Downsampling
         h = self.head(x)
         hs = [h]
@@ -120,9 +121,9 @@ class UNet3D(nn.Module):
                 h = torch.cat([h, hs.pop()], dim=1)
             h = layer(h, temb)
         h = self.tail(h)
-        h = self.up1(h, temb)  # Project upsampling 32-> 64
-        # h = self.up2(h, temb)  # Project upsampling 64-> 128
-        h = self.final_activation(h)
+        h = self.tail_activation(h)
+        h = self.up(h, temb)  # Project : upsampling 32-> 64
+        # h = self.final_activation(h)  # Project : If use BCE loss
 
         assert len(hs) == 0
         return h

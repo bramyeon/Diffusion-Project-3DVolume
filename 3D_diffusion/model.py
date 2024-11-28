@@ -22,15 +22,10 @@ class DiffusionModule(nn.Module):
 
         xt, eps = self.var_scheduler.add_noise(x0, timestep)
 
-        # eps_pred = self.network(xt, timestep)
-        x0_pred = self.network(xt, timestep)
+        x0_pred = self.network(xt, timestep)  # Project : x0 prediction
 
-        # eps = torch.sigmoid(eps)
-        # eps_pred = torch.sigmoid(eps_pred)
-
-        # loss = F.mse_loss(eps_pred, eps, reduction='mean')
-
-        loss = F.binary_cross_entropy(x0_pred, x0)
+        loss = F.mse_loss(x0_pred, x0, reduction='none')
+        # loss = F.binary_cross_entropy(x0_pred, x0)
         loss = loss.mean()
         ######################
         return loss
