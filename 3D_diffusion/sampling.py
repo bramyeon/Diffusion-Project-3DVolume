@@ -27,7 +27,7 @@ def main(args):
         mode="linear",
     ).to(device)
 
-    total_num_samples = 5000
+    total_num_samples = 1000
     num_categories = 3
     num_batches = int(np.ceil(total_num_samples / args.batch_size))
     samples_list_all = [[],[],[]]
