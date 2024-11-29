@@ -14,7 +14,7 @@ def main(args):
 
     device = f"cuda:{args.gpu}"
 
-    ddpm = DiffusionModule(None, None)
+    ddpm = DiffusionModule(None, None, category=args.category)
     ddpm.load(args.ckpt_path)
     ddpm.eval()
     ddpm = ddpm.to(device)
