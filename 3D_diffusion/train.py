@@ -78,7 +78,7 @@ def main(args):
         num_classes=getattr(ds_module, "num_classes", None),
     )
 
-    ddpm = DiffusionModule(network, var_scheduler)
+    ddpm = DiffusionModule(network, var_scheduler, category=args.category)
     ddpm = ddpm.to(config.device)
 
     optimizer = torch.optim.Adam(ddpm.network.parameters(), lr=2e-4)
@@ -107,7 +107,6 @@ def main(args):
 
 
                 ############# Project #############
-                # threshold = 0.7  # In training, don't apply threshold, save origin value
                 for i, voxel in enumerate(samples):
                     voxel = voxel.squeeze(1).clamp(0, 1).detach()
                     np.save(save_dir/ f"step={step}-{i}", voxel.cpu().numpy())
@@ -170,5 +169,8 @@ if __name__ == "__main__":
     parser.add_argument("--sample_method", type=str, default="ddpm")
     parser.add_argument("--use_cfg", action="store_true")
     parser.add_argument("--cfg_dropout", type=float, default=0.1)
+    parser.add_argument("--category", default=None)
     args = parser.parse_args()
+    assert args.category in [None, 'airplane', 'chair', 'table']
+
     main(args)

@@ -8,10 +8,11 @@ from tqdm import tqdm
 
 
 class DiffusionModule(nn.Module):
-    def __init__(self, network, var_scheduler, **kwargs):
+    def __init__(self, network, var_scheduler, category, **kwargs):
         super().__init__()
         self.network = network
         self.var_scheduler = var_scheduler
+        self.category = category
 
     def get_loss(self, x0, class_label=None, noise=None):
         ######## TODO ########
@@ -24,8 +25,10 @@ class DiffusionModule(nn.Module):
 
         x0_pred = self.network(xt, timestep)  # Project : x0 prediction
 
-        loss = F.mse_loss(x0_pred, x0, reduction='none')
-        # loss = F.binary_cross_entropy(x0_pred, x0)
+        if self.category in ['chair', 'table']:
+            loss = F.mse_loss(x0_pred, x0, reduction='none')
+        else:
+            loss = F.binary_cross_entropy(x0_pred, x0)
         loss = loss.mean()
         ######################
         return loss
