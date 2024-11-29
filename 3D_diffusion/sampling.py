@@ -27,13 +27,24 @@ def main(args):
         mode="linear",
     ).to(device)
 
-    total_num_samples = 1000
+    total_num_samples = 5000
     num_categories = 3
     num_batches = int(np.ceil(total_num_samples / args.batch_size))
     samples_list_all = [[],[],[]]
     samples_list = []
-    category_idx = 2  # For one category sampling, airplane = 0, chair = 1, table = 2
 
+    if args.category == 'airplane':
+        category_idx = 0
+        threshold = 0.07
+    elif args.category == 'chair':
+        category_idx = 1
+        threshold = 0.07
+    elif args.category == 'table':
+        category_idx = 2
+        threshold = 0.07
+    else:
+        category_idx = 0
+            
     for i in range(num_batches):
         sidx = i * args.batch_size
         eidx = min(sidx + args.batch_size, total_num_samples)
@@ -64,10 +75,16 @@ def main(args):
         for i in range(num_categories):
             category_samples = torch.cat(samples_list[i])
             np.save(save_dir / f"{category_idx}", category_samples.cpu().numpy())
+            if args.category is not None:
+                binary = (category_samples >= threshold)
+                np.save(save_dir / f"{category_idx}_binary", binary.cpu().numpy())
             print(f"Saved the {category_idx}-th category's voxels.")
     else:
         samples_list = torch.cat(samples_list)
         np.save(save_dir / f"{category_idx}", samples_list.cpu().numpy())
+        if args.category is not None:
+            binary = (samples_list >= threshold)
+            np.save(save_dir / f"{category_idx}_binary", binary.cpu().numpy())
         print(f"Saved the {category_idx}-th category's voxels.")
 
 
@@ -80,6 +97,9 @@ if __name__ == "__main__":
     parser.add_argument("--use_cfg", action="store_true")
     parser.add_argument("--sample_method", type=str, default="ddpm")
     parser.add_argument("--cfg_scale", type=float, default=7.5)
+    parser.add_argument("--category", default=None)
 
     args = parser.parse_args()
+    
+    assert args.category in [None, 'airplane', 'chair', 'table']
     main(args)
