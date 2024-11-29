@@ -28,7 +28,7 @@ class DiffusionModule(nn.Module):
         if self.category in ['chair', 'table']:
             loss = F.mse_loss(x0_pred, x0, reduction='none')
         else:
-            loss = F.binary_cross_entropy(x0_pred, x0)
+            loss = F.binary_cross_entropy_with_logits(x0_pred, x0)
         loss = loss.mean()
         ######################
         return loss
