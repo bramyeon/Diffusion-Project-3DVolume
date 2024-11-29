@@ -90,8 +90,7 @@ class ShapeNetVoxelDataModule(object):
             num_workers: int = 4,
             max_num_voxels_per_cat: int = 1000,  # Project
             voxel_resolution: int = 128,  # Project
-            label_offset=1,
-            augment_dir: str = None
+            label_offset=1
     ):
         self.root = root
         self.batch_size = batch_size
@@ -100,7 +99,6 @@ class ShapeNetVoxelDataModule(object):
         self.max_num_voxels_per_cat = max_num_voxels_per_cat  # Project
         self.voxel_resolution = voxel_resolution  # Project
         self.label_offset = label_offset
-        self.augment_dir = augment_dir
 
         if not os.path.exists(self.shapenet_root):
             print(f"{self.shapenet_root} is empty. Make voxel dataset...")
@@ -112,7 +110,7 @@ class ShapeNetVoxelDataModule(object):
             self.shapenet_root,
             "train",
             max_num_voxels_per_cat=self.max_num_voxels_per_cat,
-            label_offset=self.label_offset, augment_dir=self.augment_dir
+            label_offset=self.label_offset, 
         )
         self.val_ds = ShapeNetVoxelDataset(
             self.shapenet_root,
