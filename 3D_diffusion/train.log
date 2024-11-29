@@ -1,0 +1,17 @@
+nohup: ignoring input
+save_dir: results/diffusion-ddpm-11-29-192557
+Seed set to 63
+Traceback (most recent call last):
+  File "/home/intern/protein/bryan-new/Diffusion-Project-3DVolume/3D_diffusion/train.py", line 176, in <module>
+    main(args)
+  File "/home/intern/protein/bryan-new/Diffusion-Project-3DVolume/3D_diffusion/train.py", line 49, in main
+    ds_module = ShapeNetVoxelDataModule(
+  File "/home/intern/protein/bryan-new/Diffusion-Project-3DVolume/3D_diffusion/dataset.py", line 171, in __init__
+    self._set_dataset()
+  File "/home/intern/protein/bryan-new/Diffusion-Project-3DVolume/3D_diffusion/dataset.py", line 174, in _set_dataset
+    self.train_ds = ShapeNetAugmentedVoxelDataset(
+  File "/home/intern/protein/bryan-new/Diffusion-Project-3DVolume/3D_diffusion/dataset.py", line 126, in __init__
+    self.syn_data = np.load(os.path.join(self.augment_dir, "???.npy"))
+  File "/home/intern/protein/mambaforge/envs/bryan-diff/lib/python3.10/posixpath.py", line 76, in join
+    a = os.fspath(a)
+TypeError: expected str, bytes or os.PathLike object, not NoneType
