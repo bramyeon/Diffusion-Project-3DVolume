@@ -1,5 +1,6 @@
 # PVD-Vox: Point-Voxel Diffusion for 3D Volume Generation in Voxel Grids
 ```
+KAIST Fall 2024 CS492(D) Diffusion Models and Their Applications Term Project
 Topic 4: 3D Volume Generation
 Haun Kim (20243223), Seokyoung Kim (20243911) & Bryan Nathanael Wijaya* (20244078)
 School of Computing / Graduate School of Metaverse
