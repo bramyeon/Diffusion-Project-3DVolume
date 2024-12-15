@@ -8,8 +8,9 @@ from tqdm import tqdm
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
+VOX_RES = (64, 64, 64) # 11.20 update: change the resolution of the voxels from 128^3 to 64^3.
 
-def voxelize(pts, vox_res=(128, 128, 128)):
+def voxelize(pts, vox_res=VOX_RES):
     """
     pts: np.ndarray [N,3]
     vox_res: (height, width, length)
@@ -40,12 +41,21 @@ if __name__ == "__main__":
     zipfile = os.path.basename(shapenet_part_seg_link)
 
     shapenet_dir = os.path.join(DATA_DIR, "hdf5_data")
+    
+    save_dir = os.path.join(DATA_DIR, "hdf5_data")
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir, exist_ok=True)
 
     if not os.path.exists(shapenet_dir):
-        print(f"[*] ShapeNet PartSeg dataset will be downloaded under {DATA_DIR}")
-        os.system(f"wget --no-check-certificate {shapenet_part_seg_link} -P {DATA_DIR}")
-        os.system(f"unzip {os.path.join(DATA_DIR, zipfile)} -d {DATA_DIR}")
-        os.system(f"rm {os.path.join(DATA_DIR, zipfile)}")
+        if os.path.exists(os.path.join(DATA_DIR, 'hdf5_data.zip')):
+            print(f"[*] Unzipping ShapeNet dataset under {DATA_DIR}")
+            os.system(f"unzip {os.path.join(DATA_DIR, 'hdf5_data.zip')} -d {DATA_DIR}")
+            os.system(f"rm {os.path.join(DATA_DIR, 'hdf5_data.zip')}")
+        else:
+            print(f"[*] ShapeNet PartSeg dataset will be downloaded under {DATA_DIR}")
+            os.system(f"wget --no-check-certificate {shapenet_part_seg_link} -P {DATA_DIR}")
+            os.system(f"unzip {os.path.join(DATA_DIR, zipfile)} -d {DATA_DIR}")
+            os.system(f"rm {os.path.join(DATA_DIR, zipfile)}")
 
     for cat, catlabel in [
         ("chair", 4),
@@ -73,14 +83,18 @@ if __name__ == "__main__":
                 f.close()
 
             all_cat_voxels = []
+            all_cat_pointclouds = []
             pbar = tqdm(total=len(args))
             pbar.set_description(f"{cat} {split} processing...")
             with mp.Pool(mp.cpu_count()) as pool:
-                for r in pool.imap(voxelize, args):
+                for i, r in enumerate(pool.imap(voxelize, args)):
                     all_cat_voxels.append(r)
+                    all_cat_pointclouds.append(args[i])
                     pbar.update()
 
             all_cat_voxels = np.stack(all_cat_voxels, 0)
+            all_cat_pointclouds = np.stack(all_cat_pointclouds, 0)
             print(f"# of {cat} {split} voxels: {len(all_cat_voxels)}")
 
-            np.save(os.path.join(shapenet_dir, f"{cat}_voxels_{split}.npy"), all_cat_voxels)
+            np.save(os.path.join(save_dir, f"{cat}_voxels_{split}.npy"), all_cat_voxels)
+            np.save(os.path.join(save_dir, f"{cat}_pointclouds_{split}.npy"), all_cat_pointclouds)

@@ -9,9 +9,12 @@ from scipy.spatial import cKDTree
 from tqdm import tqdm
 
 
-def voxel_to_pointcloud(voxel_grid: torch.Tensor, vox_res=(128, 128, 128)):
+VOX_RES = (64, 64, 64) # 11.20 update: change the resolution of the voxels from 128^3 to 64^3.
+
+def voxel_to_pointcloud(voxel_grid: torch.Tensor, vox_res=VOX_RES):
     vox_res = np.array(vox_res)
-    voxel_indices = torch.argwhere(voxel_grid > 0)
+    # voxel_indices = torch.argwhere(voxel_grid > 0)
+    voxel_indices = torch.nonzero(voxel_grid > 0, as_tuple=False)   # changed because we are using an older PyTorch version
     normalized_pts = voxel_indices / (vox_res - 1)
     normalized_pts = normalized_pts.reshape(-1, 3)
 
@@ -53,7 +56,7 @@ def pairwise_CD(sample_pcs, ref_pcs, use_multiprocessing=True):
         for si, ri in indices:
             args.append((sample_pcs[si], ref_pcs[ri]))
         with tqdm(total=total_num) as pbar:
-            pool = mp.Pool(mp.cpu_count())
+            pool = mp.Pool(max(mp.cpu_count() - 2, 1))
 
             for result in pool.imap(processChamfer, args):
                 cd_results.append(result)
@@ -92,8 +95,8 @@ def jensen_shannon_divergence(voxel_set1, voxel_set2):
     """
     Compute the Jensen-Shannon Divergence between two 3D voxel sets.
     Args:
-        voxel_set1 (torch.Tensor): Binary 3D voxel grid (shape: N1 x 128 x 128 x 128).
-        voxel_set2 (torch.Tensor): Binary 3D voxel grid (shape: N2 x 128 x 128 x 128).
+        voxel_set1 (torch.Tensor): Binary 3D voxel grid (shape: N1 x NUM_GRID x NUM_GRID x NUM_GRID).
+        voxel_set2 (torch.Tensor): Binary 3D voxel grid (shape: N2 x NUM_GRID x NUM_GRID x NUM_GRID).
         N1 and N2: # of samples
     Returns:
         float: Jensen-Shannon Divergence value.
@@ -188,8 +191,8 @@ if __name__ == "__main__":
     
     assert category in ["chair", "airplane", "table"], f"{category} should be one of `chair`, `airplane`, or `table`."
 
-    X_gen = torch.load(sample_path).float()
-    # X_gen = torch.rand(1000, 128, 128, 128)  # For testing.
+    X_gen = torch.from_numpy(np.load(sample_path)).float()
+    # X_gen = torch.rand(1000, *VOX_RES)  # For testing.
     # X_gen = (X_gen > 0.98).float()
 
     shapenet_dir = "./data/hdf5_data"  # TODO: CHANGE THE PATH IF NEEDED.
