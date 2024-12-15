@@ -11,9 +11,9 @@ Daejeon 34141, Republic of Korea
 
 <br>
 
-Refer to our report for implementation details and reproduction instructions.  
+Refer to our report for details on the implementation and reproduction instructions.  
 The PVD-Vox in this branch is implemented by Bryan.  
-The UNet3Diff in the `haun` branch is implemented by Haun and Seokyoung.  
+The UNet3Diff (not reported) in the `haun` branch is implemented by Haun and Seokyoung.  
 
 <br>
 <br>
